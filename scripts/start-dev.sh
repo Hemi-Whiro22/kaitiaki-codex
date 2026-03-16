@@ -36,6 +36,10 @@ echo "  - make profile-show"
 echo "  - make profile-check"
 echo "  - make check-tree"
 echo
+echo "Profile notes:"
+echo "  - profiles/devcontainer-local/inference-cuda.md"
+echo "  - profiles/devcontainer-local/llama.env.example"
+echo
 echo "Local inference note:"
 echo "  MCP can expose a local inference service to clients and tools."
 echo "  GPU offload comes from how llama.cpp is built and launched, not from MCP itself."

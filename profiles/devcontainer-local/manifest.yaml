@@ -64,6 +64,9 @@ tooling:
     - make
     - shell scripts
     - editor extensions via dev container
+  profile_notes:
+    - profiles/devcontainer-local/inference-cuda.md
+    - profiles/devcontainer-local/llama.env.example
 
 inference:
   mode: local-first
