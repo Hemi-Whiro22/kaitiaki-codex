@@ -1,0 +1,116 @@
+profile: devcontainer-local
+
+purpose:
+  summary: >
+    Local-first coding and environment profile for building from the Kaitiaki
+    framework contracts without redefining them.
+  goals:
+    - provide a reproducible coding environment
+    - keep documentation close to the implementation profile
+    - support local tooling for Python and Node development
+    - support local inference and model-assisted coding workflows
+    - stay small enough to branch into future projects cleanly
+
+includes:
+  documentation:
+    - canonical contract docs under docs/
+    - lineage anchors under docs/lineage/
+    - audit prompts and comparison results
+  runtime:
+    - Python tooling
+    - Node tooling
+    - Makefile-based profile commands
+    - bootstrap/start scripts
+    - dev container scaffold
+  local_first:
+    - local environment variables
+    - local scripts
+    - local profile setup
+  model_support:
+    - local inference readiness
+    - optional llama.cpp-backed workflows
+    - Codex-friendly coding environment
+
+excludes:
+  architecture_redefinition:
+    - no change to canonical system meaning
+    - no hidden shift in pou responsibilities
+    - no guardian becoming a reasoning engine
+  production_scope:
+    - no production deployment stack by default
+    - no cloud-first assumptions
+    - no multi-tenant auth or enterprise platform concerns yet
+  bloat:
+    - no extra services without a current profile need
+    - no speculative dependencies "just in case"
+    - no broad provider lock-in
+
+tooling:
+  coding_agent:
+    primary: Codex
+    role: coding and repo-shaping assistant within the profile boundary
+  mcp:
+    local_examples:
+      - profiles/devcontainer-local/mcp.example.yaml
+    purpose: >
+      Describe how local capability surfaces may be exposed to tools or clients
+      without redefining guardian or contract boundaries.
+  languages:
+    - Python
+    - Node
+    - shell
+  developer_tools:
+    - git
+    - make
+    - shell scripts
+    - editor extensions via dev container
+
+inference:
+  mode: local-first
+  primary_runtime:
+    preferred: llama.cpp
+    required_now: false
+  use_cases:
+    - coding assistance
+    - local reasoning support
+    - future local tool routing
+    - optional MCP exposure of local inference services
+  constraints:
+    - remote providers are optional, not assumed
+    - inference does not redefine guardian or contract boundaries
+    - MCP does not provide GPU offload by itself; runtime build and launch choices do
+
+bootstrap:
+  entrypoints:
+    - Makefile
+    - scripts/start-dev.sh
+  expected_flow:
+    - open repo in dev container
+    - bootstrap local profile scripts
+    - read docs contract from docs/
+    - begin carving the current implementation profile
+  next_moves:
+    - refine dev container packages and commands
+    - add current profile examples to selected docs
+    - define local runtime helpers for future project branches
+
+ports:
+  reserved:
+    api: 8093
+    model: 8090
+    mcp: 8172
+  note: >
+    These ports are placeholders for local-first profile planning and may be
+    refined in this branch without changing the upstream contracts.
+
+stability_target:
+  current_phase: scaffold
+  stable_when:
+    - docs location is settled
+    - dev container opens cleanly
+    - local bootstrap flow is repeatable
+    - profile scope is understood
+  branch_after_stable:
+    - project-specific implementations
+    - service-specific profiles
+    - runtime experiments that stay downstream of the framework
