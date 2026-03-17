@@ -5,6 +5,8 @@ import json
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 
 from app.models import (
+    ArchiveCleanupRequest,
+    ArchiveCleanupResponse,
     ArchiveFolderRequest,
     ArchiveIngestResponse,
     ArchiveScanResponse,
@@ -20,6 +22,7 @@ from services.guardian import route_guardian_action
 from services.inference import inference_profile
 from services.intake import (
     fetch_staged_intake,
+    cleanup_archive_records,
     ingest_archive_folder,
     ingest_intake,
     intake_summary,
@@ -105,6 +108,11 @@ def archive_ingest(request: ArchiveFolderRequest) -> ArchiveIngestResponse:
         max_text_files=request.max_text_files,
     )
     return ArchiveIngestResponse(**result.__dict__)
+
+
+@app.post("/archive/cleanup", response_model=ArchiveCleanupResponse)
+def archive_cleanup(request: ArchiveCleanupRequest) -> ArchiveCleanupResponse:
+    return ArchiveCleanupResponse(**cleanup_archive_records(request.target_pou, request.source_pattern))
 
 
 @app.get("/intake/{intake_id}")

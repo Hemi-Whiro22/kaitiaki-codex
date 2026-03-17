@@ -250,3 +250,43 @@ def test_archive_ingest_skips_binary_looking_text_candidates(tmp_path: Path, mon
     search = client.get("/search", params={"q": "binary-noise", "target_pou": "whakapapa"})
     assert search.status_code == 200
     assert search.json() == []
+
+
+def test_archive_cleanup_removes_matching_records(tmp_path: Path, monkeypatch) -> None:
+    project_root = tmp_path / "project"
+    project_root.mkdir()
+    (project_root / "var" / "state").mkdir(parents=True)
+    (project_root / "var" / "db").mkdir(parents=True)
+    monkeypatch.setattr(settings, "project_root", project_root)
+
+    archive = tmp_path / "archive-cleanup"
+    archive.mkdir()
+    (archive / "notes.txt").write_text("Cleanup corpus note", encoding="utf-8")
+
+    ingest = client.post(
+        "/archive/ingest",
+        json={
+            "folder_path": str(archive),
+            "target_pou": "whakapapa",
+            "is_tapu": False,
+            "max_text_files": 10,
+        },
+    )
+    assert ingest.status_code == 200
+    data = ingest.json()
+    assert data["ingested_text_files"] >= 1
+
+    sync = client.post("/index/semantic-sync", params={"target_pou": "whakapapa"})
+    assert sync.status_code == 200
+
+    cleanup = client.post(
+        "/archive/cleanup",
+        json={
+            "target_pou": "whakapapa",
+            "source_pattern": "%notes.txt%",
+        },
+    )
+    assert cleanup.status_code == 200
+    payload = cleanup.json()
+    assert payload["removed_records"] >= 1
+    assert payload["removed_chunks"] >= 1

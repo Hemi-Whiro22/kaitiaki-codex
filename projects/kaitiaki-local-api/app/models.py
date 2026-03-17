@@ -20,6 +20,11 @@ class ArchiveFolderRequest(BaseModel):
     max_text_files: int = Field(default=50, ge=1, le=500)
 
 
+class ArchiveCleanupRequest(BaseModel):
+    target_pou: str = Field(..., min_length=1)
+    source_pattern: str = Field(..., min_length=1)
+
+
 class IntakeResponse(BaseModel):
     intake_id: str
     target_pou: str
@@ -81,3 +86,11 @@ class ArchiveIngestResponse(BaseModel):
     registered_assets: int
     blocked: bool
     reason: str
+
+
+class ArchiveCleanupResponse(BaseModel):
+    target_pou: str
+    source_pattern: str
+    removed_records: int
+    removed_chunks: int
+    removed_semantic_rows: int

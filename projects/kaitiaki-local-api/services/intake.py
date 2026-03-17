@@ -543,3 +543,67 @@ def semantic_ready_chunks(target_pou: str | None = None, limit: int = 20) -> lis
                 )
             )
     return results[:limit]
+
+
+def cleanup_archive_records(target_pou: str, source_pattern: str) -> dict[str, int | str]:
+    endpoint_db = _endpoint_db_path(target_pou)
+    if not endpoint_db.exists():
+        return {
+            "target_pou": target_pou,
+            "source_pattern": source_pattern,
+            "removed_records": 0,
+            "removed_chunks": 0,
+            "removed_semantic_rows": 0,
+        }
+
+    _init_endpoint_db(endpoint_db)
+    with _connect(endpoint_db) as conn:
+        intake_rows = conn.execute(
+            """
+            SELECT intake_id
+            FROM intake_records
+            WHERE source_id LIKE ?
+            """,
+            (source_pattern,),
+        ).fetchall()
+        intake_ids = [str(row["intake_id"]) for row in intake_rows]
+        if not intake_ids:
+            return {
+                "target_pou": target_pou,
+                "source_pattern": source_pattern,
+                "removed_records": 0,
+                "removed_chunks": 0,
+                "removed_semantic_rows": 0,
+            }
+
+        placeholders = ",".join("?" for _ in intake_ids)
+        removed_chunks = conn.execute(
+            f"SELECT COUNT(*) AS count FROM index_chunks WHERE intake_id IN ({placeholders})",
+            intake_ids,
+        ).fetchone()
+        removed_semantic = conn.execute(
+            f"SELECT COUNT(*) AS count FROM semantic_index WHERE intake_id IN ({placeholders})",
+            intake_ids,
+        ).fetchone()
+
+        conn.execute(
+            f"DELETE FROM semantic_index WHERE intake_id IN ({placeholders})",
+            intake_ids,
+        )
+        conn.execute(
+            f"DELETE FROM index_chunks WHERE intake_id IN ({placeholders})",
+            intake_ids,
+        )
+        conn.execute(
+            f"DELETE FROM intake_records WHERE intake_id IN ({placeholders})",
+            intake_ids,
+        )
+        conn.commit()
+
+    return {
+        "target_pou": target_pou,
+        "source_pattern": source_pattern,
+        "removed_records": len(intake_ids),
+        "removed_chunks": int(removed_chunks["count"]) if removed_chunks is not None else 0,
+        "removed_semantic_rows": int(removed_semantic["count"]) if removed_semantic is not None else 0,
+    }

@@ -8,6 +8,7 @@ from services.guardian import route_guardian_action
 from services.inference import inference_profile
 from services.extract import scan_archive_folder
 from services.intake import (
+    cleanup_archive_records,
     ingest_archive_folder,
     ingest_intake,
     intake_summary,
@@ -65,6 +66,12 @@ def archive_ingest(folder_path: str, target_pou: str, is_tapu: bool = False, max
         is_tapu=is_tapu,
         max_text_files=max_text_files,
     ).__dict__
+
+
+@mcp.tool
+def archive_cleanup(target_pou: str, source_pattern: str) -> dict[str, object]:
+    """Remove archive-derived records from a local pou DB by source_id pattern."""
+    return cleanup_archive_records(target_pou, source_pattern)
 
 
 @mcp.tool
