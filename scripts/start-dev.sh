@@ -37,6 +37,7 @@ echo "  - make profile-check"
 echo "  - make llama-check"
 echo "  - make llama-start"
 echo "  - make llama-smoke"
+echo "  - make llama-draft TASK='Describe the stub you want'"
 echo "  - make check-tree"
 echo
 echo "Profile notes:"

@@ -17,6 +17,7 @@ required_paths=(
   "${ROOT_DIR}/scripts/llama-check.sh"
   "${ROOT_DIR}/scripts/llama-start.sh"
   "${ROOT_DIR}/scripts/llama-smoke.sh"
+  "${ROOT_DIR}/scripts/llama-draft.sh"
   "${ROOT_DIR}/scripts/profile-log.sh"
   "${ROOT_DIR}/var/log/.gitkeep"
   "${ROOT_DIR}/var/state/.gitkeep"

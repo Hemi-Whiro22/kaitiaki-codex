@@ -1,2 +1,4 @@
 var/log/*.log
 var/state/*.jsonl
+var/state/llama-draft-*.request.json
+var/state/llama-draft-*.response.json
