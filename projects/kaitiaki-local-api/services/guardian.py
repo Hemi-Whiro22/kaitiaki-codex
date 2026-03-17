@@ -9,3 +9,14 @@ def route_guardian_action(target_pou: str, visible_pou: Iterable[str] | None = N
     """Return True only when the requested pou is within the visible local scope."""
     scope = set(visible_pou or ALLOWED_POU)
     return target_pou in scope
+
+
+def guardian_intake_decision(target_pou: str, tapu_level: str) -> dict[str, object]:
+    """Return the local-first guardian decision for an intake request."""
+    allowed = route_guardian_action(target_pou)
+    return {
+        "target_pou": target_pou,
+        "tapu_level": tapu_level,
+        "allowed": allowed,
+        "reason": "allowed_local_scope" if allowed else "blocked_unknown_pou",
+    }

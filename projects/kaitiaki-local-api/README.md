@@ -34,6 +34,13 @@ Get to a minimal local service that can:
 - return health
 - report profile/runtime configuration
 - expose a small MCP surface
+- accept guardian-gated intake
+- accept multiple local file types and normalize them to text
+- scrub metadata and stage locally
+- promote cleared intake into per-pou endpoint DBs
+- search promoted local chunks for recall
+- expose semantic-ready chunk candidates for future vector indexing
+- build a local semantic index and query it
 - stay aligned with the local-first Kaitiaki posture
 
 ## Bootstrap
@@ -50,4 +57,14 @@ For the MCP surface:
 ```bash
 source .venv/bin/activate
 make run-mcp
+```
+
+For retrieval after intake:
+
+```bash
+curl 'http://127.0.0.1:8093/search?q=local'
+curl 'http://127.0.0.1:8093/intake'
+curl 'http://127.0.0.1:8093/semantic-ready'
+curl -X POST 'http://127.0.0.1:8093/index/semantic-sync'
+curl 'http://127.0.0.1:8093/search/semantic?q=recall'
 ```

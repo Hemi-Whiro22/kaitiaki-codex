@@ -21,22 +21,43 @@ runtime:
 
 services:
   api:
-    role: local HTTP surface for health, profile, and future guarded actions
+    role: local HTTP surface for health, profile, intake, and guarded actions
     module: api.main
     port: 8093
   mcp:
-    role: local capability surface for coding and guarded tool exposure
+    role: local capability surface for coding, intake, and guarded tool exposure
     module: api.mcp_server
     port: 8172
   inference:
     role: local llama.cpp model endpoint consumed by this project
     endpoint: http://127.0.0.1:8090
+  intake:
+    role: guardian-gated local intake with scrub, staging, and promotion
+    input_types:
+      - text
+      - markdown
+      - json
+      - html
+    stage_db: var/state/intake-stage.db
+    endpoint_db_dir: var/db/
+  retrieval:
+    role: local promoted-chunk search over endpoint dbs
+    mode: simple lexical search first
+    future: vector and semantic indexing after the local flow stabilizes
+  indexer:
+    role: consume semantic-ready chunks after guardian-cleared promotion
+    source: /semantic-ready
+    current_mode: local embedding sync plus semantic search
+    embedding_profile:
+      preferred: sentence-transformers/all-MiniLM-L6-v2
+      fallback: deterministic local hash embedding
 
 storage:
   mode: local-only
   paths:
     - var/log/
     - var/state/
+    - var/db/
   note: project storage stays local unless explicitly changed later
 
 boundaries:
