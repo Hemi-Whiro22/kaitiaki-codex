@@ -31,6 +31,11 @@ class IntakeResult:
     intake_id: str
     target_pou: str
     allowed: bool
+    is_tapu: bool
+    tapu_level: str | None
+    reason: str
+    confirmation_required: bool
+    required_tapu_level: str | None
     cleaned: bool
     meta_scrubbed: bool
     ready_for_indexing: bool
@@ -153,12 +158,23 @@ def _endpoint_db_paths(target_pou: str | None = None) -> list[Path]:
 
 
 def ingest_intake(request: IntakeRequest) -> IntakeResult:
-    decision = guardian_intake_decision(request.target_pou, request.tapu_level)
+    decision = guardian_intake_decision(request.target_pou, request.is_tapu)
     if not decision["allowed"]:
         return IntakeResult(
             intake_id="blocked",
             target_pou=request.target_pou,
             allowed=False,
+            is_tapu=request.is_tapu,
+            tapu_level=(
+                str(decision["tapu_level"]) if decision["tapu_level"] is not None else None
+            ),
+            reason=str(decision["reason"]),
+            confirmation_required=bool(decision["confirmation_required"]),
+            required_tapu_level=(
+                str(decision["required_tapu_level"])
+                if decision["required_tapu_level"] is not None
+                else None
+            ),
             cleaned=False,
             meta_scrubbed=False,
             ready_for_indexing=False,
@@ -188,7 +204,7 @@ def ingest_intake(request: IntakeRequest) -> IntakeResult:
                 intake_id,
                 request.source_id,
                 request.target_pou,
-                request.tapu_level,
+                str(decision["tapu_level"]),
                 request.content,
                 cleaned_content,
                 json.dumps(scrubbed_meta, ensure_ascii=False),
@@ -210,7 +226,7 @@ def ingest_intake(request: IntakeRequest) -> IntakeResult:
             (
                 intake_id,
                 request.source_id,
-                request.tapu_level,
+                str(decision["tapu_level"]),
                 cleaned_content,
                 json.dumps(scrubbed_meta, ensure_ascii=False),
                 len(chunks),
@@ -239,6 +255,15 @@ def ingest_intake(request: IntakeRequest) -> IntakeResult:
         intake_id=intake_id,
         target_pou=request.target_pou,
         allowed=True,
+        is_tapu=request.is_tapu,
+        tapu_level=str(decision["tapu_level"]),
+        reason=str(decision["reason"]),
+        confirmation_required=bool(decision["confirmation_required"]),
+        required_tapu_level=(
+            str(decision["required_tapu_level"])
+            if decision["required_tapu_level"] is not None
+            else None
+        ),
         cleaned=True,
         meta_scrubbed=True,
         ready_for_indexing=True,

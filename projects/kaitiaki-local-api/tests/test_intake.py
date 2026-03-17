@@ -21,15 +21,18 @@ def test_intake_promotes_to_target_db() -> None:
                 "author_email": "private@example.com",
                 "tags": ["sample"],
             },
-            "tapu_level": "caution",
+            "is_tapu": False,
         },
     )
     assert response.status_code == 200
     data = response.json()
     assert data["allowed"] is True
+    assert data["is_tapu"] is False
+    assert data["tapu_level"] == "open"
     assert data["promoted"] is True
     assert Path(data["stage_db"]).exists()
     assert Path(data["endpoint_db"]).exists()
+    assert data["reason"] == "allowed_local_scope"
 
     fetch = client.get(f"/intake/{data['intake_id']}")
     assert fetch.status_code == 200
@@ -47,16 +50,40 @@ def test_search_finds_promoted_chunk() -> None:
             "target_pou": "whakapapa",
             "content": "Whakapapa memory grows through local intake and recall.",
             "metadata": {"title": "Search sample"},
-            "tapu_level": "caution",
+            "is_tapu": False,
         },
     )
     assert response.status_code == 200
 
-    search = client.get("/search", params={"q": "recall"})
+    search = client.get("/search", params={"q": "recall", "target_pou": "whakapapa"})
     assert search.status_code == 200
     results = search.json()
     assert results
     assert any(item["target_pou"] == "whakapapa" for item in results)
+
+
+def test_intake_blocks_low_tapu_for_target_lane() -> None:
+    response = client.post(
+        "/intake",
+        json={
+            "source_id": "blocked-source",
+            "target_pou": "tapu",
+            "content": "This should not be promoted with open tapu level.",
+            "metadata": {"title": "Blocked sample"},
+            "is_tapu": False,
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["allowed"] is False
+    assert data["promoted"] is False
+    assert data["reason"] == "blocked_noa_for_tapu_lane"
+    assert data["confirmation_required"] is True
+    assert data["required_tapu_level"] == "restricted"
+    assert data["is_tapu"] is False
+    assert data["tapu_level"] == "open"
+    assert data["intake_id"] == "blocked"
+    assert data["endpoint_db"] is None
 
 
 def test_intake_overview_reports_counts() -> None:
@@ -74,7 +101,7 @@ def test_file_intake_html_normalizes_to_text() -> None:
             "source_id": "html-source",
             "target_pou": "taonga",
             "metadata_json": "{\"title\": \"HTML sample\"}",
-            "tapu_level": "caution",
+            "is_tapu": "false",
         },
         files={
             "file": ("sample.html", b"<html><body><h1>Kia ora</h1><p>Semantic recall text</p></body></html>", "text/html")
@@ -105,7 +132,7 @@ def test_semantic_index_and_search_work() -> None:
             "target_pou": "tikanga",
             "content": "Light v2 style semantic indexing should recall tikanga context.",
             "metadata": {"title": "Semantic seed"},
-            "tapu_level": "caution",
+            "is_tapu": False,
         },
     )
     assert seed.status_code == 200

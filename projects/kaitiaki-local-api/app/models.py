@@ -10,13 +10,18 @@ class IntakeRequest(BaseModel):
     target_pou: str = Field(..., min_length=1)
     content: str = Field(..., min_length=1)
     metadata: dict[str, Any] = Field(default_factory=dict)
-    tapu_level: str = "caution"
+    is_tapu: bool = False
 
 
 class IntakeResponse(BaseModel):
     intake_id: str
     target_pou: str
     allowed: bool
+    is_tapu: bool
+    tapu_level: str | None = None
+    reason: str
+    confirmation_required: bool = False
+    required_tapu_level: str | None = None
     cleaned: bool
     meta_scrubbed: bool
     ready_for_indexing: bool

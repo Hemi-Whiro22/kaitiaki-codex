@@ -56,7 +56,7 @@ def intake(request: IntakeRequest) -> IntakeResponse:
 async def intake_file(
     source_id: str = Form(...),
     target_pou: str = Form(...),
-    tapu_level: str = Form("caution"),
+    is_tapu: bool = Form(False),
     metadata_json: str = Form("{}"),
     file: UploadFile = File(...),
 ) -> IntakeResponse:
@@ -80,7 +80,7 @@ async def intake_file(
             target_pou=target_pou,
             content=extracted_text,
             metadata=metadata,
-            tapu_level=tapu_level,
+            is_tapu=is_tapu,
         )
     )
     return IntakeResponse(**result.__dict__)
