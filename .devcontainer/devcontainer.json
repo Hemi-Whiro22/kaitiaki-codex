@@ -1,5 +1,5 @@
 {
-  "name": "kaitiaki-framework-101",
+  "name": "kaitiaki-codex",
   "build": {
     "dockerfile": "Dockerfile"
   },
@@ -7,7 +7,7 @@
     "--gpus=all"
   ],
   "remoteUser": "vscode",
-  "postCreateCommand": "chmod +x scripts/start-dev.sh scripts/profile-check.sh scripts/llama-check.sh scripts/llama-start.sh",
+  "postCreateCommand": "chmod +x scripts/start-dev.sh scripts/profile-check.sh scripts/llama-check.sh scripts/llama-start.sh scripts/llama-smoke.sh scripts/llama-draft.sh scripts/profile-log.sh",
   "customizations": {
     "vscode": {
       "settings": {
