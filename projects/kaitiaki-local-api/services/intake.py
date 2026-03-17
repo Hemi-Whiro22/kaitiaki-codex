@@ -400,6 +400,14 @@ def ingest_archive_folder(
                             metadata={"archive_kind": scan["archive_kind"]},
                         )
                         registered_assets += 1
+            else:
+                _register_archive_asset(
+                    archive_id=archive_id,
+                    source_path=relative_path,
+                    asset_kind=payload.kind,
+                    metadata={"archive_kind": scan["archive_kind"], "reason": "binary_payload_skipped"},
+                )
+                registered_assets += 1
         elif kind == "asset":
             _register_archive_asset(
                 archive_id=archive_id,

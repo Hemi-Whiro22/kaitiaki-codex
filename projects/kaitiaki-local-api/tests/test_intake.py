@@ -218,3 +218,35 @@ def test_archive_ingest_promotes_text_and_registers_assets(tmp_path: Path, monke
     overview = client.get("/intake")
     assert overview.status_code == 200
     assert overview.json()["staged_records"] >= 2
+
+
+def test_archive_ingest_skips_binary_looking_text_candidates(tmp_path: Path, monkeypatch) -> None:
+    project_root = tmp_path / "project"
+    project_root.mkdir()
+    (project_root / "var" / "state").mkdir(parents=True)
+    (project_root / "var" / "db").mkdir(parents=True)
+    monkeypatch.setattr(settings, "project_root", project_root)
+
+    archive = tmp_path / "archive-binary"
+    archive.mkdir()
+    (archive / "notes.txt").write_text("Plain archive note", encoding="utf-8")
+    (archive / "mysteryblob").write_bytes(b"\x00\x01\x02\x03\xff\xd8\x00binary-noise")
+
+    response = client.post(
+        "/archive/ingest",
+        json={
+            "folder_path": str(archive),
+            "target_pou": "whakapapa",
+            "is_tapu": False,
+            "max_text_files": 10,
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["blocked"] is False
+    assert data["ingested_text_files"] >= 1
+    assert data["registered_assets"] >= 1
+
+    search = client.get("/search", params={"q": "binary-noise", "target_pou": "whakapapa"})
+    assert search.status_code == 200
+    assert search.json() == []

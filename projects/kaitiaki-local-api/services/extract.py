@@ -45,6 +45,7 @@ ASSET_EXTENSIONS = {
     ".mp4",
     ".mov",
 }
+TEXT_EXTENSIONS = {".txt", ".md", ".json", ".html", ".htm"}
 
 
 def detect_source_type(filename: str | None, content_type: str | None) -> str:
@@ -63,6 +64,23 @@ def detect_source_type(filename: str | None, content_type: str | None) -> str:
     if name.endswith(".txt") or "text/plain" in ctype:
         return "text"
     return "text"
+
+
+def _looks_binary(raw_bytes: bytes) -> bool:
+    sample = raw_bytes[:2048]
+    if not sample:
+        return False
+    if b"\x00" in sample:
+        return True
+
+    text_whitelist = {9, 10, 13}
+    suspicious = 0
+    for byte in sample:
+        if byte in text_whitelist or 32 <= byte <= 126 or byte >= 160:
+            continue
+        suspicious += 1
+
+    return (suspicious / len(sample)) > 0.10
 
 
 def _flatten_chat_mapping(conversation: dict[str, Any], assets: dict[str, str]) -> tuple[str, list[str]]:
@@ -172,6 +190,8 @@ def _extract_chat_export_json(text: str) -> ExtractedContent:
 
 
 def extract_content_payload(raw_bytes: bytes, source_type: str) -> ExtractedContent:
+    if source_type in {"text", "markdown", "html", "json"} and _looks_binary(raw_bytes):
+        return ExtractedContent(text="", kind="binary_asset", linked_assets=[])
     text = raw_bytes.decode("utf-8", errors="replace")
     if source_type == "chat_export_html":
         return _extract_chat_export_html(text)
@@ -201,7 +221,16 @@ def extract_text_content(raw_bytes: bytes, source_type: str) -> str:
 def classify_archive_file(path: Path) -> str:
     if path.suffix.lower() in ASSET_EXTENSIONS:
         return "asset"
+    if path.suffix.lower() in TEXT_EXTENSIONS or path.name.lower() == "chat.html":
+        return "text"
     source_type = detect_source_type(path.name, None)
+    if source_type in {"chat_export_html", "chat_export_json"}:
+        return "text"
+    try:
+        if _looks_binary(path.read_bytes()[:2048]):
+            return "asset"
+    except OSError:
+        return "other"
     if source_type in TEXT_SOURCE_TYPES:
         return "text"
     return "other"
