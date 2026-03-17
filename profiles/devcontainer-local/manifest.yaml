@@ -11,6 +11,32 @@ purpose:
     - support local inference and model-assisted coding workflows
     - stay small enough to branch into future projects cleanly
 
+roles:
+  codex:
+    title: primary_carver
+    responsibilities:
+      - interpret project intent against the local contracts and docs
+      - make integration and patch decisions
+      - verify changes before they are treated as accepted
+      - keep local-first and anti-drift boundaries intact
+  local_model:
+    title: draft_assistant
+    responsibilities:
+      - generate first-pass stubs, options, and recommendations
+      - support local reasoning and drafting tasks
+      - stay advisory rather than authoritative
+
+authority:
+  write_authority: codex_reviewed_only
+  local_model_limits:
+    - no direct repo writes
+    - no silent architecture changes
+    - no redefinition of upstream contracts
+  decision_posture:
+    - conservative with system meaning
+    - explicit about uncertainty
+    - protect local-first boundaries
+
 includes:
   documentation:
     - canonical contract docs under docs/
@@ -91,11 +117,23 @@ bootstrap:
     - open repo in dev container
     - bootstrap local profile scripts
     - read docs contract from docs/
+    - use local model only for draft support when useful
+    - keep accepted repo changes under Codex review
     - begin carving the current implementation profile
   next_moves:
     - refine dev container packages and commands
     - add current profile examples to selected docs
     - define local runtime helpers for future project branches
+
+workflow:
+  default_mode:
+    - local model drafts first-pass material when requested
+    - Codex reviews and refines drafts into repo-safe changes
+    - local checks and logs confirm what was used
+  project_posture:
+    - local-first
+    - no mandatory cloud dependency
+    - docs and intent stay local to the working repo
 
 ports:
   reserved:
