@@ -32,7 +32,7 @@ class IntakeResult:
     target_pou: str
     allowed: bool
     is_tapu: bool
-    tapu_level: str | None
+    resolved_tapu_level: str | None
     reason: str
     confirmation_required: bool
     required_tapu_level: str | None
@@ -165,8 +165,10 @@ def ingest_intake(request: IntakeRequest) -> IntakeResult:
             target_pou=request.target_pou,
             allowed=False,
             is_tapu=request.is_tapu,
-            tapu_level=(
-                str(decision["tapu_level"]) if decision["tapu_level"] is not None else None
+            resolved_tapu_level=(
+                str(decision["resolved_tapu_level"])
+                if decision["resolved_tapu_level"] is not None
+                else None
             ),
             reason=str(decision["reason"]),
             confirmation_required=bool(decision["confirmation_required"]),
@@ -204,7 +206,7 @@ def ingest_intake(request: IntakeRequest) -> IntakeResult:
                 intake_id,
                 request.source_id,
                 request.target_pou,
-                str(decision["tapu_level"]),
+                str(decision["resolved_tapu_level"]),
                 request.content,
                 cleaned_content,
                 json.dumps(scrubbed_meta, ensure_ascii=False),
@@ -226,7 +228,7 @@ def ingest_intake(request: IntakeRequest) -> IntakeResult:
             (
                 intake_id,
                 request.source_id,
-                str(decision["tapu_level"]),
+                str(decision["resolved_tapu_level"]),
                 cleaned_content,
                 json.dumps(scrubbed_meta, ensure_ascii=False),
                 len(chunks),
@@ -256,7 +258,7 @@ def ingest_intake(request: IntakeRequest) -> IntakeResult:
         target_pou=request.target_pou,
         allowed=True,
         is_tapu=request.is_tapu,
-        tapu_level=str(decision["tapu_level"]),
+        resolved_tapu_level=str(decision["resolved_tapu_level"]),
         reason=str(decision["reason"]),
         confirmation_required=bool(decision["confirmation_required"]),
         required_tapu_level=(

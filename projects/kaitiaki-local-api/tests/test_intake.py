@@ -28,7 +28,7 @@ def test_intake_promotes_to_target_db() -> None:
     data = response.json()
     assert data["allowed"] is True
     assert data["is_tapu"] is False
-    assert data["tapu_level"] == "open"
+    assert data["resolved_tapu_level"] == "open"
     assert data["promoted"] is True
     assert Path(data["stage_db"]).exists()
     assert Path(data["endpoint_db"]).exists()
@@ -81,7 +81,7 @@ def test_intake_blocks_low_tapu_for_target_lane() -> None:
     assert data["confirmation_required"] is True
     assert data["required_tapu_level"] == "restricted"
     assert data["is_tapu"] is False
-    assert data["tapu_level"] == "open"
+    assert data["resolved_tapu_level"] == "open"
     assert data["intake_id"] == "blocked"
     assert data["endpoint_db"] is None
 

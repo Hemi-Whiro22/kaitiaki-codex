@@ -18,7 +18,7 @@ class IntakeResponse(BaseModel):
     target_pou: str
     allowed: bool
     is_tapu: bool
-    tapu_level: str | None = None
+    resolved_tapu_level: str | None = None
     reason: str
     confirmation_required: bool = False
     required_tapu_level: str | None = None

@@ -21,11 +21,11 @@ def test_guardian_allows_valid_lane_tapu_combination() -> None:
     decision = guardian_intake_decision("tikanga", False)
     assert decision["allowed"] is True
     assert decision["confirmation_required"] is False
-    assert decision["tapu_level"] == "open"
+    assert decision["resolved_tapu_level"] == "open"
 
 
 def test_guardian_allows_tapu_lane_when_tapu_enabled() -> None:
     decision = guardian_intake_decision("tapu", True)
     assert decision["allowed"] is True
     assert decision["confirmation_required"] is False
-    assert decision["tapu_level"] == "restricted"
+    assert decision["resolved_tapu_level"] == "restricted"

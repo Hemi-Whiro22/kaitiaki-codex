@@ -29,7 +29,7 @@ def guardian_intake_decision(target_pou: str, is_tapu: bool) -> dict[str, object
         return {
             "target_pou": target_pou,
             "is_tapu": is_tapu,
-            "tapu_level": None,
+            "resolved_tapu_level": None,
             "allowed": False,
             "reason": "blocked_unknown_pou",
             "confirmation_required": False,
@@ -42,7 +42,7 @@ def guardian_intake_decision(target_pou: str, is_tapu: bool) -> dict[str, object
         return {
             "target_pou": target_pou,
             "is_tapu": is_tapu,
-            "tapu_level": requested_tapu_level,
+            "resolved_tapu_level": requested_tapu_level,
             "allowed": False,
             "reason": "blocked_noa_for_tapu_lane",
             "confirmation_required": True,
@@ -52,7 +52,7 @@ def guardian_intake_decision(target_pou: str, is_tapu: bool) -> dict[str, object
     return {
         "target_pou": target_pou,
         "is_tapu": is_tapu,
-        "tapu_level": requested_tapu_level,
+        "resolved_tapu_level": requested_tapu_level,
         "allowed": True,
         "reason": "allowed_local_scope",
         "confirmation_required": False,
