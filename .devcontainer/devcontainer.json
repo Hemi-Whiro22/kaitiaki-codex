@@ -3,8 +3,11 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
+  "runArgs": [
+    "--gpus=all"
+  ],
   "remoteUser": "vscode",
-  "postCreateCommand": "chmod +x scripts/start-dev.sh",
+  "postCreateCommand": "chmod +x scripts/start-dev.sh scripts/profile-check.sh scripts/llama-check.sh scripts/llama-start.sh",
   "customizations": {
     "vscode": {
       "settings": {
@@ -17,7 +20,8 @@
         "ms-python.vscode-pylance",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "eamodio.gitlens"
+        "eamodio.gitlens",
+        "ms-azuretools.vscode-docker"
       ]
     }
   }

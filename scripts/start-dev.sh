@@ -34,6 +34,9 @@ echo
 echo "Useful commands:"
 echo "  - make profile-show"
 echo "  - make profile-check"
+echo "  - make llama-check"
+echo "  - make llama-start"
+echo "  - make llama-smoke"
 echo "  - make check-tree"
 echo
 echo "Profile notes:"

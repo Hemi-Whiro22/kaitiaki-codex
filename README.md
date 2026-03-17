@@ -12,6 +12,8 @@ This branch is an implementation profile workspace built from the canonical Kait
   - reproducible local development profile
 - `scripts/`
   - local bootstrap and start helpers
+- `var/`
+  - local profile logs and state trail for this branch
 - `Makefile`
   - common profile commands
 
@@ -38,6 +40,7 @@ Build a local-first development environment that can host:
 - documentation
 - Python and Node tooling
 - profile scripts
+- local CUDA-backed llama.cpp checks and smoke tests
 - future backend/UI/runtime work
 
 without redefining the upstream contracts.

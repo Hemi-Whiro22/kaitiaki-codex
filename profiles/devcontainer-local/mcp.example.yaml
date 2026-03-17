@@ -6,17 +6,20 @@ servers:
     transport: http
     endpoint: http://127.0.0.1:8090
     runtime: llama.cpp
-    enabled_by_default: false
+    enabled_by_default: true
+    current_status: primary local model path for this profile
     notes:
       - MCP exposes the capability surface; it does not create GPU offload by itself.
       - GPU use depends on the llama.cpp build and launch flags.
       - Prefer local GGUF models for this profile when practical.
+      - The inference server can be tested directly before any MCP client wiring.
 
   local_guardian:
     purpose: future local bridge for guarded tool calls or profile-scoped actions
     transport: http
     endpoint: http://127.0.0.1:8172
     enabled_by_default: false
+    current_status: reserved for future guarded tool routing
     notes:
       - keep guardian decisions separate from model reasoning
       - only expose tools that fit this profile scope
