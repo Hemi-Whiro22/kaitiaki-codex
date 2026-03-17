@@ -6,6 +6,8 @@ projects/*/.venv/
 projects/*/.pytest_cache/
 projects/*/var/log/*.log
 projects/*/var/state/*.jsonl
+projects/*/var/state/*.db
+projects/*/var/db/*.db
 projects/*/app/__pycache__/
 projects/*/api/__pycache__/
 projects/*/services/__pycache__/
