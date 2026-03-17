@@ -51,7 +51,7 @@ tooling:
     role: coding and repo-shaping assistant within the profile boundary
   mcp:
     local_examples:
-      - profiles/devcontainer-local/mcp.example.yaml
+      - profiles/devcontainer-local/mcp.yaml
     purpose: >
       Describe how local capability surfaces may be exposed to tools or clients
       without redefining guardian or contract boundaries.

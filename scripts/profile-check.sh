@@ -8,7 +8,7 @@ required_paths=(
   "${ROOT_DIR}/docs/QUICK_REFERENCE_CURRENT_CONTRACT.md"
   "${ROOT_DIR}/docs/how_to_run_CURRENT_CONTRACT.md"
   "${ROOT_DIR}/profiles/devcontainer-local/manifest.yaml"
-  "${ROOT_DIR}/profiles/devcontainer-local/mcp.example.yaml"
+  "${ROOT_DIR}/profiles/devcontainer-local/mcp.yaml"
   "${ROOT_DIR}/profiles/devcontainer-local/inference-cuda.md"
   "${ROOT_DIR}/profiles/devcontainer-local/llama.env.example"
   "${ROOT_DIR}/.devcontainer/devcontainer.json"

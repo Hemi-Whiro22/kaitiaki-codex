@@ -1,4 +1,4 @@
-.PHONY: help bootstrap start-dev profile-show profile-check check-tree llama-check llama-start llama-smoke
+.PHONY: help bootstrap start-dev profile-show profile-check check-tree llama-check llama-start llama-smoke mcp-show
 
 help:
 	@echo "Available targets:"
@@ -9,6 +9,7 @@ help:
 	@echo "  make llama-check Validate local CUDA/llama.cpp readiness"
 	@echo "  make llama-start Start local llama.cpp server"
 	@echo "  make llama-smoke Run a local inference smoke test"
+	@echo "  make mcp-show    Show the MCP profile example"
 	@echo "  make check-tree  Show the profile tree"
 
 bootstrap:
@@ -32,6 +33,10 @@ llama-start:
 
 llama-smoke:
 	./scripts/llama-smoke.sh
+
+mcp-show:
+	@echo "MCP profile: profiles/devcontainer-local/mcp.yaml"
+	@sed -n '1,220p' profiles/devcontainer-local/mcp.yaml
 
 check-tree:
 	find . -maxdepth 2 -mindepth 1 | sort

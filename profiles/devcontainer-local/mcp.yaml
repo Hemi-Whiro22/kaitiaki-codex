@@ -8,11 +8,19 @@ servers:
     runtime: llama.cpp
     enabled_by_default: true
     current_status: primary local model path for this profile
+    health_path: /health
+    models_path: /v1/models
+    smoke_test:
+      command: make llama-smoke
+      expectation:
+        - health endpoint responds
+        - models endpoint responds
     notes:
       - MCP exposes the capability surface; it does not create GPU offload by itself.
       - GPU use depends on the llama.cpp build and launch flags.
       - Prefer local GGUF models for this profile when practical.
       - The inference server can be tested directly before any MCP client wiring.
+      - This branch has already proven the direct local inference path before MCP client binding.
 
   local_guardian:
     purpose: future local bridge for guarded tool calls or profile-scoped actions
