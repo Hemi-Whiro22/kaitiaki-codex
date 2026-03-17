@@ -12,6 +12,12 @@ from typing import Any
 from app.models import IntakeRequest, SearchResult, SemanticChunkCandidate
 from app.settings import settings
 from services.guardian import guardian_intake_decision
+from services.extract import (
+    classify_archive_file,
+    detect_source_type,
+    extract_content_payload,
+    scan_archive_folder,
+)
 
 
 KEEP_META_KEYS = {
@@ -44,6 +50,19 @@ class IntakeResult:
     endpoint_db: str | None
 
 
+@dataclass
+class ArchiveIngestResult:
+    archive_id: str
+    folder_path: str
+    target_pou: str
+    is_tapu: bool
+    resolved_tapu_level: str | None
+    ingested_text_files: int
+    registered_assets: int
+    blocked: bool
+    reason: str
+
+
 def _ensure_parent(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -71,6 +90,19 @@ def _init_stage_db(path: Path) -> None:
                 meta_scrubbed INTEGER NOT NULL,
                 ready_for_indexing INTEGER NOT NULL,
                 promoted INTEGER NOT NULL DEFAULT 0
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS archive_assets (
+                asset_id TEXT PRIMARY KEY,
+                archive_id TEXT NOT NULL,
+                intake_id TEXT,
+                source_path TEXT NOT NULL,
+                asset_kind TEXT NOT NULL,
+                linked_from TEXT,
+                metadata_json TEXT NOT NULL
             )
             """
         )
@@ -155,6 +187,36 @@ def _endpoint_db_paths(target_pou: str | None = None) -> list[Path]:
     if not db_dir.exists():
         return []
     return sorted(db_dir.glob("*.db"))
+
+
+def _register_archive_asset(
+    archive_id: str,
+    source_path: str,
+    asset_kind: str,
+    linked_from: str | None = None,
+    intake_id: str | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> None:
+    stage_db = _stage_db_path()
+    _init_stage_db(stage_db)
+    with _connect(stage_db) as conn:
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO archive_assets (
+                asset_id, archive_id, intake_id, source_path, asset_kind, linked_from, metadata_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                f"{archive_id}:{source_path}",
+                archive_id,
+                intake_id,
+                source_path,
+                asset_kind,
+                linked_from,
+                json.dumps(metadata or {}, ensure_ascii=False),
+            ),
+        )
+        conn.commit()
 
 
 def ingest_intake(request: IntakeRequest) -> IntakeResult:
@@ -272,6 +334,91 @@ def ingest_intake(request: IntakeRequest) -> IntakeResult:
         promoted=True,
         stage_db=str(stage_db),
         endpoint_db=str(endpoint_db),
+    )
+
+
+def ingest_archive_folder(
+    folder_path: str,
+    target_pou: str,
+    is_tapu: bool = False,
+    max_text_files: int = 50,
+) -> ArchiveIngestResult:
+    decision = guardian_intake_decision(target_pou, is_tapu)
+    if not decision["allowed"]:
+        return ArchiveIngestResult(
+            archive_id="blocked",
+            folder_path=folder_path,
+            target_pou=target_pou,
+            is_tapu=is_tapu,
+            resolved_tapu_level=(
+                str(decision["resolved_tapu_level"])
+                if decision["resolved_tapu_level"] is not None
+                else None
+            ),
+            ingested_text_files=0,
+            registered_assets=0,
+            blocked=True,
+            reason=str(decision["reason"]),
+        )
+
+    root = Path(folder_path).expanduser().resolve()
+    archive_id = str(uuid.uuid4())
+    ingested_text_files = 0
+    registered_assets = 0
+    scan = scan_archive_folder(str(root))
+
+    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+        relative_path = str(path.relative_to(root))
+        kind = classify_archive_file(path)
+        if kind == "text" and ingested_text_files < max_text_files:
+            source_type = detect_source_type(path.name, None)
+            payload = extract_content_payload(path.read_bytes(), source_type)
+            if payload.text.strip():
+                result = ingest_intake(
+                    IntakeRequest(
+                        source_id=f"{archive_id}:{relative_path}",
+                        target_pou=target_pou,
+                        content=payload.text,
+                        metadata={
+                            "title": path.name,
+                            "notes": f"archive:{scan['archive_kind']}",
+                            "content_type": source_type,
+                            "source_url": relative_path,
+                        },
+                        is_tapu=is_tapu,
+                    )
+                )
+                if result.allowed and result.promoted:
+                    ingested_text_files += 1
+                    for linked_asset in payload.linked_assets:
+                        _register_archive_asset(
+                            archive_id=archive_id,
+                            source_path=linked_asset,
+                            asset_kind="linked_asset",
+                            linked_from=relative_path,
+                            intake_id=result.intake_id,
+                            metadata={"archive_kind": scan["archive_kind"]},
+                        )
+                        registered_assets += 1
+        elif kind == "asset":
+            _register_archive_asset(
+                archive_id=archive_id,
+                source_path=relative_path,
+                asset_kind=path.suffix.lower().lstrip(".") or "asset",
+                metadata={"archive_kind": scan["archive_kind"]},
+            )
+            registered_assets += 1
+
+    return ArchiveIngestResult(
+        archive_id=archive_id,
+        folder_path=str(root),
+        target_pou=target_pou,
+        is_tapu=is_tapu,
+        resolved_tapu_level=str(decision["resolved_tapu_level"]),
+        ingested_text_files=ingested_text_files,
+        registered_assets=registered_assets,
+        blocked=False,
+        reason="archive_ingested",
     )
 
 

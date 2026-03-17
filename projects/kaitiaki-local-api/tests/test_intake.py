@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 
 from api.main import app
 from app.settings import settings
+from services.extract import scan_archive_folder
 
 
 client = TestClient(app)
@@ -147,3 +148,73 @@ def test_semantic_index_and_search_work() -> None:
     results = search.json()
     assert results
     assert any(item["target_pou"] == "tikanga" for item in results)
+
+
+def test_archive_scan_detects_chat_export_folder(tmp_path: Path) -> None:
+    archive = tmp_path / "archive"
+    archive.mkdir()
+    (archive / "chat.html").write_text(
+        """
+        <html><script>
+        var jsonData = [{"title":"Test chat","current_node":"b","mapping":{
+          "a":{"id":"a","message":{"author":{"role":"user"},"content":{"parts":["Kia ora archive"]},"metadata":{}},"parent":null},
+          "b":{"id":"b","message":{"author":{"role":"assistant"},"content":{"parts":["Archive response"]},"metadata":{}},"parent":"a"}
+        }}];
+        var assetsJson = {"file-service://asset-1":"asset-1.png"};
+        function getConversationMessages() {}
+        </script></html>
+        """,
+        encoding="utf-8",
+    )
+    (archive / "asset-1.png").write_bytes(b"png")
+    scan = scan_archive_folder(str(archive))
+    assert scan["archive_kind"] == "chatgpt_export_folder"
+    assert scan["file_counts"]["text"] >= 1
+    assert scan["file_counts"]["asset"] >= 1
+    assert "chat.html" in scan["text_candidates"]
+
+
+def test_archive_ingest_promotes_text_and_registers_assets(tmp_path: Path, monkeypatch) -> None:
+    project_root = tmp_path / "project"
+    project_root.mkdir()
+    (project_root / "var" / "state").mkdir(parents=True)
+    (project_root / "var" / "db").mkdir(parents=True)
+    monkeypatch.setattr(settings, "project_root", project_root)
+
+    archive = tmp_path / "archive"
+    archive.mkdir()
+    (archive / "chat.html").write_text(
+        """
+        <html><script>
+        var jsonData = [{"title":"Archive corpus","current_node":"b","mapping":{
+          "a":{"id":"a","message":{"author":{"role":"user"},"content":{"parts":["Need to preserve this korero"]},"metadata":{}},"parent":null},
+          "b":{"id":"b","message":{"author":{"role":"assistant"},"content":{"parts":["This archive should be indexed locally"]},"metadata":{}},"parent":"a"}
+        }}];
+        var assetsJson = {"file-service://asset-1":"asset-1.png"};
+        function getConversationMessages() {}
+        </script></html>
+        """,
+        encoding="utf-8",
+    )
+    (archive / "notes.txt").write_text("Additional local archive note", encoding="utf-8")
+    (archive / "asset-1.png").write_bytes(b"png")
+    (archive / "voice.mp3").write_bytes(b"mp3")
+
+    response = client.post(
+        "/archive/ingest",
+        json={
+            "folder_path": str(archive),
+            "target_pou": "whakapapa",
+            "is_tapu": False,
+            "max_text_files": 10,
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["blocked"] is False
+    assert data["ingested_text_files"] >= 2
+    assert data["registered_assets"] >= 2
+
+    overview = client.get("/intake")
+    assert overview.status_code == 200
+    assert overview.json()["staged_records"] >= 2

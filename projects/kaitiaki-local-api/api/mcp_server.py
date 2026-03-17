@@ -6,7 +6,14 @@ from app.models import IntakeRequest
 from app.settings import settings
 from services.guardian import route_guardian_action
 from services.inference import inference_profile
-from services.intake import ingest_intake, intake_summary, search_intake, semantic_ready_chunks
+from services.extract import scan_archive_folder
+from services.intake import (
+    ingest_archive_folder,
+    ingest_intake,
+    intake_summary,
+    search_intake,
+    semantic_ready_chunks,
+)
 from services.vector_index import semantic_search, sync_semantic_index
 
 mcp = FastMCP(
@@ -30,17 +37,34 @@ def inference_info() -> dict[str, object]:
 
 
 @mcp.tool
-def intake_text(source_id: str, target_pou: str, content: str, tapu_level: str = "caution") -> dict[str, object]:
+def intake_text(source_id: str, target_pou: str, content: str, is_tapu: bool = False) -> dict[str, object]:
     """Run a local-first intake through guardian, scrub, staging, and promotion."""
     result = ingest_intake(
         IntakeRequest(
             source_id=source_id,
             target_pou=target_pou,
             content=content,
-            tapu_level=tapu_level,
+            is_tapu=is_tapu,
         )
     )
     return result.__dict__
+
+
+@mcp.tool
+def archive_scan(folder_path: str) -> dict[str, object]:
+    """Inspect a local archive folder and classify text-bearing files and assets."""
+    return scan_archive_folder(folder_path)
+
+
+@mcp.tool
+def archive_ingest(folder_path: str, target_pou: str, is_tapu: bool = False, max_text_files: int = 50) -> dict[str, object]:
+    """Ingest a local archive folder, promoting text-bearing records and registering assets."""
+    return ingest_archive_folder(
+        folder_path=folder_path,
+        target_pou=target_pou,
+        is_tapu=is_tapu,
+        max_text_files=max_text_files,
+    ).__dict__
 
 
 @mcp.tool

@@ -41,6 +41,7 @@ Get to a minimal local service that can:
 - search promoted local chunks for recall
 - expose semantic-ready chunk candidates for future vector indexing
 - build a local semantic index and query it
+- scan and ingest mixed local archive folders such as ChatGPT export bundles
 - stay aligned with the local-first Kaitiaki posture
 
 ## Bootstrap
@@ -67,4 +68,16 @@ curl 'http://127.0.0.1:8093/intake'
 curl 'http://127.0.0.1:8093/semantic-ready'
 curl -X POST 'http://127.0.0.1:8093/index/semantic-sync'
 curl 'http://127.0.0.1:8093/search/semantic?q=recall'
+```
+
+For archive folders:
+
+```bash
+curl -X POST 'http://127.0.0.1:8093/archive/scan' \
+  -H 'Content-Type: application/json' \
+  -d '{"folder_path":"/path/to/archive","target_pou":"whakapapa","is_tapu":false}'
+
+curl -X POST 'http://127.0.0.1:8093/archive/ingest' \
+  -H 'Content-Type: application/json' \
+  -d '{"folder_path":"/path/to/archive","target_pou":"whakapapa","is_tapu":false,"max_text_files":25}'
 ```

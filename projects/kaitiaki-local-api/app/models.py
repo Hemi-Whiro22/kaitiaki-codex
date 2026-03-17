@@ -13,6 +13,13 @@ class IntakeRequest(BaseModel):
     is_tapu: bool = False
 
 
+class ArchiveFolderRequest(BaseModel):
+    folder_path: str = Field(..., min_length=1)
+    target_pou: str = Field(..., min_length=1)
+    is_tapu: bool = False
+    max_text_files: int = Field(default=50, ge=1, le=500)
+
+
 class IntakeResponse(BaseModel):
     intake_id: str
     target_pou: str
@@ -54,3 +61,23 @@ class SemanticIndexResult(BaseModel):
     embedding_model: str
     embedding_mode: str
     by_pou: dict[str, int]
+
+
+class ArchiveScanResponse(BaseModel):
+    folder_path: str
+    archive_kind: str
+    file_counts: dict[str, int]
+    text_candidates: list[str]
+    asset_candidates: list[str]
+
+
+class ArchiveIngestResponse(BaseModel):
+    archive_id: str
+    folder_path: str
+    target_pou: str
+    is_tapu: bool
+    resolved_tapu_level: str | None
+    ingested_text_files: int
+    registered_assets: int
+    blocked: bool
+    reason: str

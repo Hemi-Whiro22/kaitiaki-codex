@@ -5,6 +5,9 @@ import json
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 
 from app.models import (
+    ArchiveFolderRequest,
+    ArchiveIngestResponse,
+    ArchiveScanResponse,
     IntakeRequest,
     IntakeResponse,
     SearchResult,
@@ -17,11 +20,13 @@ from services.guardian import route_guardian_action
 from services.inference import inference_profile
 from services.intake import (
     fetch_staged_intake,
+    ingest_archive_folder,
     ingest_intake,
     intake_summary,
     search_intake,
     semantic_ready_chunks,
 )
+from services.extract import scan_archive_folder
 from services.vector_index import semantic_search, sync_semantic_index
 
 app = FastAPI(title=settings.project_name)
@@ -84,6 +89,22 @@ async def intake_file(
         )
     )
     return IntakeResponse(**result.__dict__)
+
+
+@app.post("/archive/scan", response_model=ArchiveScanResponse)
+def archive_scan(request: ArchiveFolderRequest) -> ArchiveScanResponse:
+    return ArchiveScanResponse(**scan_archive_folder(request.folder_path))
+
+
+@app.post("/archive/ingest", response_model=ArchiveIngestResponse)
+def archive_ingest(request: ArchiveFolderRequest) -> ArchiveIngestResponse:
+    result = ingest_archive_folder(
+        folder_path=request.folder_path,
+        target_pou=request.target_pou,
+        is_tapu=request.is_tapu,
+        max_text_files=request.max_text_files,
+    )
+    return ArchiveIngestResponse(**result.__dict__)
 
 
 @app.get("/intake/{intake_id}")
