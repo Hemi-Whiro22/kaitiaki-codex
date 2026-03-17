@@ -1,0 +1,56 @@
+project:
+  name: kaitiaki-local-api
+  purpose: >
+    First local-first implementation project carved from kaitiaki-codex.
+    Provides a small Python API and FastMCP surface aligned to the Kaitiaki
+    contracts without redefining them.
+  posture:
+    - local-first
+    - no mandatory cloud dependency
+    - downstream of docs/ contracts
+
+runtime:
+  language: python
+  python_version: "3.11"
+  package_manager: pip
+  dependencies:
+    - fastapi
+    - uvicorn
+    - fastmcp
+    - pydantic
+
+services:
+  api:
+    role: local HTTP surface for health, profile, and future guarded actions
+    module: api.main
+    port: 8093
+  mcp:
+    role: local capability surface for coding and guarded tool exposure
+    module: api.mcp_server
+    port: 8172
+  inference:
+    role: local llama.cpp model endpoint consumed by this project
+    endpoint: http://127.0.0.1:8090
+
+storage:
+  mode: local-only
+  paths:
+    - var/log/
+    - var/state/
+  note: project storage stays local unless explicitly changed later
+
+boundaries:
+  codex_role: primary_carver
+  local_model_role: draft_assistant
+  write_authority: codex_reviewed_only
+  constraints:
+    - no direct local-model repo writes
+    - no hidden architecture redefinition
+    - no mandatory remote provider usage
+
+folders:
+  app: shared project settings and models
+  api: FastAPI and FastMCP entrypoints
+  services: guardian and runtime adapters
+  scripts: local project helpers
+  tests: project verification

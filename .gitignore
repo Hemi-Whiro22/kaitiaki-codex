@@ -2,3 +2,11 @@ var/log/*.log
 var/state/*.jsonl
 var/state/llama-draft-*.request.json
 var/state/llama-draft-*.response.json
+projects/*/.venv/
+projects/*/.pytest_cache/
+projects/*/var/log/*.log
+projects/*/var/state/*.jsonl
+projects/*/app/__pycache__/
+projects/*/api/__pycache__/
+projects/*/services/__pycache__/
+projects/*/tests/__pycache__/
