@@ -31,9 +31,9 @@ This repo is the first concrete coder profile for:
 
 ## Start Here
 
-1. Read [docs/STRUCTURE_GUIDE_CURRENT_CONTRACT.md](/home/hemi-whiro/kaitiaki-codex/docs/STRUCTURE_GUIDE_CURRENT_CONTRACT.md)
-2. Read [docs/QUICK_REFERENCE_CURRENT_CONTRACT.md](/home/hemi-whiro/kaitiaki-codex/docs/QUICK_REFERENCE_CURRENT_CONTRACT.md)
-3. Read [docs/how_to_run_CURRENT_CONTRACT.md](/home/hemi-whiro/kaitiaki-codex/docs/how_to_run_CURRENT_CONTRACT.md)
+1. Read [AGENTS.md](/home/hemi-whiro/kaitiaki-codex/AGENTS.md)
+2. Read [docs/CONTRACT_INDEX.md](/home/hemi-whiro/kaitiaki-codex/docs/CONTRACT_INDEX.md)
+3. Read [profiles/devcontainer-local/manifest.yaml](/home/hemi-whiro/kaitiaki-codex/profiles/devcontainer-local/manifest.yaml)
 4. Then use the dev container or local scripts in this repo
 
 ## Current Profile Goal
@@ -47,6 +47,23 @@ Build a local-first development environment that can host:
 - future backend/UI/runtime work
 
 without redefining the upstream contracts.
+
+## Codex QoL Tooling
+
+This repo also holds codex-only quality-of-life helpers for the co-dev workflow.
+
+Examples:
+- `make project-recall PROJECT=maungatapu-database`
+- `make phase-check PROJECT=maungatapu-database`
+- `make verify-all TARGET=maungatapu-database`
+
+These tools are for:
+- reducing context loss
+- checking contract/phase anchors quickly
+- making test-running a default instead of a reminder
+
+They are agent-side helpers only.
+They are not runtime dependencies of project services or databases.
 
 ## Upstream Contract
 

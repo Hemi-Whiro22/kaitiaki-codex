@@ -2,6 +2,12 @@ var/log/*.log
 var/state/*.jsonl
 var/state/llama-draft-*.request.json
 var/state/llama-draft-*.response.json
+#
+# Projects are treated as active working ground.
+# Ignore them completely by default.
+#
+projects/*
+
 projects/*/.venv/
 projects/*/.pytest_cache/
 projects/*/var/log/*.log
